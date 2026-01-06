@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model favorit {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  wisata_id  Int
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_favorit_user")
+  wisata     wisata   @relation(fields: [wisata_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_favorit_wisata")
+
+  @@unique([user_id, wisata_id], map: "unique_fav")
+  @@index([wisata_id], map: "fk_favorit_wisata")
+}
+
+model komentar {
+  id               Int                @id @default(autoincrement())
+  user_id          Int
+  wisata_id        Int
+  isi              String             @db.Text
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  parent_id        Int?
+  komentar         komentar?          @relation("komentarTokomentar", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_komentar_parent")
+  other_komentar   komentar[]         @relation("komentarTokomentar")
+  users            users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_komentar_user")
+  wisata           wisata             @relation(fields: [wisata_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_komentar_wisata")
+  laporan_komentar laporan_komentar[]
+
+  @@index([parent_id], map: "fk_komentar_parent")
+  @@index([user_id], map: "fk_komentar_user")
+  @@index([wisata_id], map: "fk_komentar_wisata")
+}
+
+model laporan_komentar {
+  id            Int      @id @default(autoincrement())
+  komentar_id   Int
+  pelapor_id    Int
+  alasan        String?  @db.Text
+  tanggal_lapor DateTime @default(now()) @db.Timestamp(0)
+  komentar      komentar @relation(fields: [komentar_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "laporan_komentar_ibfk_1")
+  users         users    @relation(fields: [pelapor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "laporan_komentar_ibfk_2")
+
+  @@unique([komentar_id, pelapor_id], map: "komentar_id")
+  @@index([pelapor_id], map: "pelapor_id")
+}
+
+model likes {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  wisata_id  Int
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_likes_user")
+  wisata     wisata   @relation(fields: [wisata_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_likes_wisata")
+
+  @@unique([user_id, wisata_id], map: "unique_like")
+  @@index([wisata_id], map: "fk_likes_wisata")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model rating {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  wisata_id  Int
+  rating     Int      @db.TinyInt
+  review     String?  @db.Text
+  images     String?  @db.LongText
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "rating_ibfk_1")
+  wisata     wisata   @relation(fields: [wisata_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "rating_ibfk_2")
+
+  @@unique([user_id, wisata_id], map: "uk_user_wisata")
+  @@index([wisata_id], map: "wisata_id")
+}
+
+model users {
+  id               Int                @id @default(autoincrement())
+  username         String?            @db.VarChar(255)
+  email            String             @unique(map: "email") @db.VarChar(100)
+  password         String             @db.VarChar(255)
+  role             users_role?        @default(user)
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  photoURL         String?            @db.VarChar(255)
+  favorit          favorit[]
+  komentar         komentar[]
+  laporan_komentar laporan_komentar[]
+  likes            likes[]
+  rating           rating[]
+}
+
+model wisata {
+  id          Int        @id @default(autoincrement())
+  judul       String     @db.VarChar(255)
+  gambar      String?    @db.VarChar(255)
+  deskripsi   String?    @db.Text
+  jam_buka    String?    @db.VarChar(10)
+  jam_tutup   String?    @db.VarChar(10)
+  no_telepon  String?    @db.VarChar(20)
+  harga_tiket Decimal?   @db.Decimal(10, 2)
+  link_gmaps  String?    @db.Text
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  kategori    String?    @db.VarChar(255)
+  fasilitas   String?    @db.Text
+  galeri      String?    @db.Text
+  alamat      String?    @db.VarChar(255)
+  favorit     favorit[]
+  komentar    komentar[]
+  likes       likes[]
+  rating      rating[]
+}
+
+enum users_role {
+  user
+  admin
+}

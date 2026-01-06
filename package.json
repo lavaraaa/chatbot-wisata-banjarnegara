@@ -1,0 +1,24 @@
+{
+  "name": "be-express-wisata-banjarnegara",
+  "version": "0.1.0",
+  "description": "ExpressJS rewrite of wisata recommendation service",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@chroma-core/google-gemini": "^0.1.7",
+    "@google/genai": "^1.27.0",
+    "@prisma/client": "6.19.0",
+    "chromadb": "^3.0.17",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "prisma": "^6.19.0"
+  }
+}
